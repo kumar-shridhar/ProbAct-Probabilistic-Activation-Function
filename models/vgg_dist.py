@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import normal
+import numpy as np
 
 cfg = {
     'VGG11': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
@@ -21,90 +22,92 @@ class VGG_Dist(nn.Module):
         self.conv1 = nn.Sequential(
             nn.Conv2d(3, 64, kernel_size=3, padding=1),
             nn.BatchNorm2d(64),
-            nn.ReLU(inplace=False))
+            nn.ReLU(inplace=True))
         
         self.conv2 = nn.Sequential(
             nn.Conv2d(64, 64, kernel_size=3, padding=1),
             nn.BatchNorm2d(64),
-            nn.ReLU(inplace=False))
+            nn.ReLU(inplace=True))
 
         self.pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         self.conv3 = nn.Sequential(
             nn.Conv2d(64, 128, kernel_size=3, padding=1), 
             nn.BatchNorm2d(128),
-            nn.ReLU(inplace=False))
+            nn.ReLU(inplace=True))
 
         self.conv4 = nn.Sequential(
             nn.Conv2d(128, 128, kernel_size=3, padding=1),
             nn.BatchNorm2d(128),
-            nn.ReLU(inplace=False))
+            nn.ReLU(inplace=True))
 
         self.pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         self.conv5 = nn.Sequential(
             nn.Conv2d(128, 256, kernel_size=3, padding=1),
             nn.BatchNorm2d(256),
-            nn.ReLU(inplace=False))
+            nn.ReLU(inplace=True))
 
         self.conv6 = nn.Sequential(
             nn.Conv2d(256, 256, kernel_size=3, padding=1),
             nn.BatchNorm2d(256),
-            nn.ReLU(inplace=False))
+            nn.ReLU(inplace=True))
 
         self.conv7 = nn.Sequential(
             nn.Conv2d(256, 256, kernel_size=3, padding=1),
             nn.BatchNorm2d(256),
-            nn.ReLU(inplace=False))
+            nn.ReLU(inplace=True))
 
         self.pool3 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         self.conv8 = nn.Sequential(
             nn.Conv2d(256, 512, kernel_size=3, padding=1),
             nn.BatchNorm2d(512),
-            nn.ReLU(inplace=False))
+            nn.ReLU(inplace=True))
 
         self.conv9 = nn.Sequential(
             nn.Conv2d(512, 512, kernel_size=3, padding=1),
             nn.BatchNorm2d(512),
-            nn.ReLU(inplace=False))
+            nn.ReLU(inplace=True))
 
         self.conv10 = nn.Sequential(
             nn.Conv2d(512, 512, kernel_size=3, padding=1),
             nn.BatchNorm2d(512),
-            nn.ReLU(inplace=False))
+            nn.ReLU(inplace=True))
 
         self.pool4 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         self.conv11 = nn.Sequential(
             nn.Conv2d(512, 512, kernel_size=3, padding=1),
             nn.BatchNorm2d(512),
-            nn.ReLU(inplace=False))
+            nn.ReLU(inplace=True))
 
         self.conv12 = nn.Sequential(
             nn.Conv2d(512, 512, kernel_size=3, padding=1),
             nn.BatchNorm2d(512),
-            nn.ReLU(inplace=False))
+            nn.ReLU(inplace=True))
 
         self.conv13 = nn.Sequential(
             nn.Conv2d(512, 512, kernel_size=3, padding=1),
             nn.BatchNorm2d(512),
-            nn.ReLU(inplace=False))
+            nn.ReLU(inplace=True))
 
         self.pool5 = nn.MaxPool2d(kernel_size=2, stride=2)
 
+        # self.dropout = nn.Dropout(0.4)
+
         self.img_width = img_width
-        self.avgpool = nn.AdaptiveAvgPool2d((7, 7))
-        #self.globalAvgpool = nn.AvgPool2d(kernel_size=self.img_width / 32, stride=1)
+        # self.avgpool = nn.AdaptiveAvgPool2d((7, 7))
+        self.globalAvgpool = nn.AvgPool2d(kernel_size=1, stride=1)
 
         self.classifier = nn.Sequential(
-            nn.Linear(512 * 7 * 7, 4096),
-            nn.ReLU(True),
-            nn.Dropout(),
-            nn.Linear(4096, 4096),
-            nn.ReLU(True),
-            nn.Dropout(),
-            nn.Linear(4096, nclass),
+            # nn.Linear(512 * 7 * 7, 4096),
+            # nn.ReLU(True),
+            # nn.Dropout(),
+            # nn.Linear(4096, 512),
+            # nn.ReLU(True),
+            # nn.Dropout(),
+            nn.Linear(512, nclass),
         )
 
         # layers = [self.conv1, self.batch_norm1, self.relu1, self.dist1, self.conv2, self.batch_norm2, self.relu2, self.dist2, self.pool1, 
@@ -118,51 +121,71 @@ class VGG_Dist(nn.Module):
         #self.layers = nn.ModuleList(layers)
 
     def distributed_activation(self, x):
-        m = normal.Normal(x, 0.05)
-        x = m.sample((5,)).mean(0)
+
+    	mu = x
+    	logvar = 0.05
+    	shape = mu.size()
+
+    	m = normal.Normal(0, 0.1)
+    	eps = m.sample((10,)).mean(0)
+
+    	# if mu.is_cuda:
+    	# 	eps = torch.cuda.FloatTensor(shape).normal_(mean = 0, std = 0.1)
+    	# else:
+    	# 	eps = torch.FloatTensor(shape).normal_(mean = 0, std = 0.1)
+
+    	return mu + np.exp(0.5 * logvar) * eps
         
-        return x
-        
+
 
     def forward(self, x):
 
         out = self.conv1(x)
         out = self.distributed_activation(out)
+        # out = self.dropout(out)
         out = self.conv2(out)
         out = self.distributed_activation(out)
         out = self.pool1(out)
 
         out = self.conv3(out)
         out = self.distributed_activation(out)
+        # out = self.dropout(out)
         out = self.conv4(out)
         out = self.distributed_activation(out)
         out = self.pool2(out)
 
         out = self.conv5(out)
         out = self.distributed_activation(out)
+        # out = self.dropout(out)
         out = self.conv6(out)
         out = self.distributed_activation(out)
+        # out = self.dropout(out)
         out = self.conv7(out)
         out = self.distributed_activation(out)
         out = self.pool3(out)
 
         out = self.conv8(out)
         out = self.distributed_activation(out)
+        # out = self.dropout(out)
         out = self.conv9(out)
         out = self.distributed_activation(out)
+        # out = self.dropout(out)
         out = self.conv10(out)
         out = self.distributed_activation(out)
         out = self.pool4(out)
 
         out = self.conv11(out)
         out = self.distributed_activation(out)
+        # out = self.dropout(out)
         out = self.conv12(out)
         out = self.distributed_activation(out)
+        # out = self.dropout(out)
         out = self.conv13(out)
-
         out = self.distributed_activation(out)
         out = self.pool5(out)
-        out = self.avgpool(out)
+
+        # out = self.dropout(out)
+        out = self.globalAvgpool(out)
         out = out.view(out.size(0), -1)
         out = self.classifier(out)
         return out
