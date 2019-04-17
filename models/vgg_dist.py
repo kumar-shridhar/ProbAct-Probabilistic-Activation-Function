@@ -22,79 +22,81 @@ class VGG_Dist(nn.Module):
         self.conv1 = nn.Sequential(
             nn.Conv2d(3, 64, kernel_size=3, padding=1),
             nn.BatchNorm2d(64),
-            nn.ReLU(inplace=True))
+            nn.PReLU())
         
         self.conv2 = nn.Sequential(
             nn.Conv2d(64, 64, kernel_size=3, padding=1),
             nn.BatchNorm2d(64),
-            nn.ReLU(inplace=True))
+            nn.PReLU())
 
         self.pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         self.conv3 = nn.Sequential(
             nn.Conv2d(64, 128, kernel_size=3, padding=1), 
             nn.BatchNorm2d(128),
-            nn.ReLU(inplace=True))
+            nn.PReLU())
 
         self.conv4 = nn.Sequential(
             nn.Conv2d(128, 128, kernel_size=3, padding=1),
             nn.BatchNorm2d(128),
-            nn.ReLU(inplace=True))
+            nn.PReLU())
 
         self.pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         self.conv5 = nn.Sequential(
             nn.Conv2d(128, 256, kernel_size=3, padding=1),
             nn.BatchNorm2d(256),
-            nn.ReLU(inplace=True))
+            nn.PReLU())
 
         self.conv6 = nn.Sequential(
             nn.Conv2d(256, 256, kernel_size=3, padding=1),
             nn.BatchNorm2d(256),
-            nn.ReLU(inplace=True))
+            nn.PReLU())
 
         self.conv7 = nn.Sequential(
             nn.Conv2d(256, 256, kernel_size=3, padding=1),
             nn.BatchNorm2d(256),
-            nn.ReLU(inplace=True))
+            nn.PReLU())
 
         self.pool3 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         self.conv8 = nn.Sequential(
             nn.Conv2d(256, 512, kernel_size=3, padding=1),
             nn.BatchNorm2d(512),
-            nn.ReLU(inplace=True))
+            nn.PReLU())
 
         self.conv9 = nn.Sequential(
             nn.Conv2d(512, 512, kernel_size=3, padding=1),
             nn.BatchNorm2d(512),
-            nn.ReLU(inplace=True))
+            nn.PReLU())
 
         self.conv10 = nn.Sequential(
             nn.Conv2d(512, 512, kernel_size=3, padding=1),
             nn.BatchNorm2d(512),
-            nn.ReLU(inplace=True))
+            nn.PReLU())
 
         self.pool4 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         self.conv11 = nn.Sequential(
             nn.Conv2d(512, 512, kernel_size=3, padding=1),
             nn.BatchNorm2d(512),
-            nn.ReLU(inplace=True))
+            nn.PReLU())
 
         self.conv12 = nn.Sequential(
             nn.Conv2d(512, 512, kernel_size=3, padding=1),
             nn.BatchNorm2d(512),
-            nn.ReLU(inplace=True))
+            nn.PReLU())
 
         self.conv13 = nn.Sequential(
             nn.Conv2d(512, 512, kernel_size=3, padding=1),
             nn.BatchNorm2d(512),
-            nn.ReLU(inplace=True))
+            nn.PReLU())
 
         self.pool5 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         # self.dropout = nn.Dropout(0.4)
+
+        self.proactiv = ProActiv.apply
 
         self.img_width = img_width
         # self.avgpool = nn.AdaptiveAvgPool2d((7, 7))
@@ -126,8 +128,8 @@ class VGG_Dist(nn.Module):
     	logvar = 0.05
     	shape = mu.size()
 
-    	m = normal.Normal(0, 0.1)
-    	eps = m.sample((10,)).mean(0)
+    	m = normal.Normal(0, 0.05)
+    	eps = m.sample((25,)).mean(0)
 
     	# if mu.is_cuda:
     	# 	eps = torch.cuda.FloatTensor(shape).normal_(mean = 0, std = 0.1)
@@ -135,53 +137,65 @@ class VGG_Dist(nn.Module):
     	# 	eps = torch.FloatTensor(shape).normal_(mean = 0, std = 0.1)
 
     	return mu + np.exp(0.5 * logvar) * eps
-        
 
 
     def forward(self, x):
 
         out = self.conv1(x)
-        out = self.distributed_activation(out)
+        out = self.proactiv(out)
+        # out = self.distributed_activation(out)
         # out = self.dropout(out)
         out = self.conv2(out)
-        out = self.distributed_activation(out)
+        out = self.proactiv(out)
+        # out = self.distributed_activation(out)
         out = self.pool1(out)
 
         out = self.conv3(out)
-        out = self.distributed_activation(out)
+        out = self.proactiv(out)
+        # out = self.distributed_activation(out)
         # out = self.dropout(out)
         out = self.conv4(out)
-        out = self.distributed_activation(out)
+        out = self.proactiv(out)
+        # out = self.distributed_activation(out)
         out = self.pool2(out)
 
         out = self.conv5(out)
-        out = self.distributed_activation(out)
+        out = self.proactiv(out)
+        # out = self.distributed_activation(out)
         # out = self.dropout(out)
         out = self.conv6(out)
-        out = self.distributed_activation(out)
+        out = self.proactiv(out)
+        # out = self.distributed_activation(out)
         # out = self.dropout(out)
         out = self.conv7(out)
-        out = self.distributed_activation(out)
+        out = self.proactiv(out)
+        # out = self.distributed_activation(out)
         out = self.pool3(out)
 
         out = self.conv8(out)
-        out = self.distributed_activation(out)
+        out = self.proactiv(out)
+        # out = self.distributed_activation(out)
         # out = self.dropout(out)
         out = self.conv9(out)
-        out = self.distributed_activation(out)
+        out = self.proactiv(out)
+        # out = self.distributed_activation(out)
         # out = self.dropout(out)
         out = self.conv10(out)
-        out = self.distributed_activation(out)
+        out = self.proactiv(out)
+        # out = self.distributed_activation(out)
         out = self.pool4(out)
 
         out = self.conv11(out)
-        out = self.distributed_activation(out)
+        out = self.proactiv(out)
+        # out = self.distributed_activation(out)
         # out = self.dropout(out)
         out = self.conv12(out)
-        out = self.distributed_activation(out)
+        out = self.proactiv(out)
+        # out = self.distributed_activation(out)
         # out = self.dropout(out)
         out = self.conv13(out)
-        out = self.distributed_activation(out)
+        out = self.proactiv(out)
+        # out = self.distributed_activation(out)
         out = self.pool5(out)
 
         # out = self.dropout(out)
@@ -192,6 +206,43 @@ class VGG_Dist(nn.Module):
 
 
 
+class ProActiv(torch.autograd.Function):
+    """
+    We can implement our own custom autograd Functions by subclassing
+    torch.autograd.Function and implementing the forward and backward passes
+    which operate on Tensors.
+    """
+
+    @staticmethod
+    def forward(ctx, input):
+        """
+        In the forward pass we receive a Tensor containing the input and return
+        a Tensor containing the output. ctx is a context object that can be used
+        to stash information for backward computation. You can cache arbitrary
+        objects for use in the backward pass using the ctx.save_for_backward method.
+        """
+        ctx.save_for_backward(input)
+        input = input.clamp(min=0)
+
+        dist = normal.Normal(loc = input, scale = 0.05)
+        return dist.sample((25,)).mean(0)
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        """
+        In the backward pass we receive a Tensor containing the gradient of the loss
+        with respect to the output, and we need to compute the gradient of the loss
+        with respect to the input.
+        """
+        input, = ctx.saved_tensors
+        grad_input = grad_output.clone()
+        grad_input[input < 0] = 0
+        return grad_input
+        
+
+
+
+
 # class VGG_Dist(nn.Module):
 #     def __init__(self, vgg_name, nclass, img_width=32):
 #         super(VGG_Dist, self).__init__()
@@ -199,7 +250,7 @@ class VGG_Dist(nn.Module):
 #         self.features = self._make_layers(cfg[vgg_name])
 #         self.classifier = nn.Linear(512, nclass)
 
-#     def distributed_activation(self, x):
+    # def distributed_activation(self, x):
 #         m = normal.Normal(x, 0.05)
 #         x = m.sample((5,)).mean(0)
         
@@ -223,7 +274,7 @@ class VGG_Dist(nn.Module):
 #                 layers += [nn.Conv2d(in_channels, x, kernel_size=3, padding=1),
 #                            nn.BatchNorm2d(x),
 #                            nn.ReLU(inplace=False),
-#                            self.distributed_activation(x)]
+                           # self.distributed_activation(x)]
 #                 in_channels = x
 #         layers += [nn.AvgPool2d(kernel_size=width, stride=1)]
 #         return nn.ModuleList(layers)
