@@ -22,75 +22,75 @@ class VGG_Dist(nn.Module):
         self.conv1 = nn.Sequential(
             nn.Conv2d(3, 64, kernel_size=3, padding=1),
             nn.BatchNorm2d(64),
-            nn.PReLU())
+            nn.ReLU())
         
         self.conv2 = nn.Sequential(
             nn.Conv2d(64, 64, kernel_size=3, padding=1),
             nn.BatchNorm2d(64),
-            nn.PReLU())
+            nn.ReLU())
 
         self.pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         self.conv3 = nn.Sequential(
             nn.Conv2d(64, 128, kernel_size=3, padding=1), 
             nn.BatchNorm2d(128),
-            nn.PReLU())
+            nn.ReLU())
 
         self.conv4 = nn.Sequential(
             nn.Conv2d(128, 128, kernel_size=3, padding=1),
             nn.BatchNorm2d(128),
-            nn.PReLU())
+            nn.ReLU())
 
         self.pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         self.conv5 = nn.Sequential(
             nn.Conv2d(128, 256, kernel_size=3, padding=1),
             nn.BatchNorm2d(256),
-            nn.PReLU())
+            nn.ReLU())
 
         self.conv6 = nn.Sequential(
             nn.Conv2d(256, 256, kernel_size=3, padding=1),
             nn.BatchNorm2d(256),
-            nn.PReLU())
+            nn.ReLU())
 
         self.conv7 = nn.Sequential(
             nn.Conv2d(256, 256, kernel_size=3, padding=1),
             nn.BatchNorm2d(256),
-            nn.PReLU())
+            nn.ReLU())
 
         self.pool3 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         self.conv8 = nn.Sequential(
             nn.Conv2d(256, 512, kernel_size=3, padding=1),
             nn.BatchNorm2d(512),
-            nn.PReLU())
+            nn.ReLU())
 
         self.conv9 = nn.Sequential(
             nn.Conv2d(512, 512, kernel_size=3, padding=1),
             nn.BatchNorm2d(512),
-            nn.PReLU())
+            nn.ReLU())
 
         self.conv10 = nn.Sequential(
             nn.Conv2d(512, 512, kernel_size=3, padding=1),
             nn.BatchNorm2d(512),
-            nn.PReLU())
+            nn.ReLU())
 
         self.pool4 = nn.MaxPool2d(kernel_size=2, stride=2)
 
         self.conv11 = nn.Sequential(
             nn.Conv2d(512, 512, kernel_size=3, padding=1),
             nn.BatchNorm2d(512),
-            nn.PReLU())
+            nn.ReLU())
 
         self.conv12 = nn.Sequential(
             nn.Conv2d(512, 512, kernel_size=3, padding=1),
             nn.BatchNorm2d(512),
-            nn.PReLU())
+            nn.ReLU())
 
         self.conv13 = nn.Sequential(
             nn.Conv2d(512, 512, kernel_size=3, padding=1),
             nn.BatchNorm2d(512),
-            nn.PReLU())
+            nn.ReLU())
 
         self.pool5 = nn.MaxPool2d(kernel_size=2, stride=2)
 
@@ -238,7 +238,32 @@ class ProActiv(torch.autograd.Function):
         grad_input = grad_output.clone()
         grad_input[input < 0] = 0
         return grad_input
-        
+
+
+
+class LearnableProActiv(nn.Module):
+    def __init__(self, in_features):
+        super(LearnableProActiv, self).__init__()
+        self.in_features = in_features
+        self.initial_sigma = 0.05
+        self.mu_weight = Parameter(torch.Tensor(in_features))
+        self.sigma_weight = Parameter(torch.Tensor(in_features))
+        self.register_buffer('eps_weight', torch.Tensor(in_features))
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        stdv = 1. / math.sqrt(self.mu_weight.size(1))
+        self.mu_weight.data.fill_(self.in_features)
+        self.sigma_weight.data.fill_(self.initial_sigma)
+        self.eps_weight.data.zero_()
+
+    def forward(self, input):
+        sig_weight = torch.exp(self.sigma_weight)
+
+        out = self.mu_weight + sig_weight * self.eps_weight.normal_()
+
+        return out
+
 
 
 
