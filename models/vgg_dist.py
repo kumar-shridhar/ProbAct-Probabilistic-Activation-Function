@@ -129,7 +129,7 @@ class VGG_Dist(nn.Module):
 
         #self.layers = nn.ModuleList(layers)
 
-    def distributed_activation(self, x):
+    def non_trainable_sigma(self, x):
 
     	mu = x
     	shape = mu.size()
@@ -148,6 +148,8 @@ class VGG_Dist(nn.Module):
 
     	mu = x
     	shape = mu.size()
+    	alpha = 1
+    	beta = 0.05
 
     	w = torch.randn(x.size(), device=device, dtype=torch.float, requires_grad=True)
 
@@ -156,7 +158,22 @@ class VGG_Dist(nn.Module):
     	else:
     	 	eps = torch.FloatTensor(shape).normal_(mean = 0, std = 1)
 
-    	return x + (F.sigmoid(w) + 0.05) * eps
+    	return x + (alpha * F.sigmoid(w) + beta) * eps
+
+
+    def sigmoid_x(self,x):
+
+    	mu = x
+    	shape = mu.size()
+    	alpha = 1
+    	beta = 0.05
+
+    	if mu.is_cuda:
+    	 	eps = torch.cuda.FloatTensor(shape).normal_(mean = 0, std = 1)
+    	else:
+    	 	eps = torch.FloatTensor(shape).normal_(mean = 0, std = 1)
+
+    	return x + (alpha * F.sigmoid(x) + beta) * eps
 
     def forward(self, x):
 
