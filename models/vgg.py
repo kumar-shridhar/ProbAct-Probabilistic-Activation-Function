@@ -37,7 +37,7 @@ class VGG_ReLU(nn.Module):
                            nn.BatchNorm2d(x),
                            nn.ReLU(inplace=True)]
                 in_channels = x
-        layers += [nn.AvgPool2d(kernel_size=width, stride=1)]
+        # layers += [nn.AvgPool2d(kernel_size=width, stride=1)]
         return nn.Sequential(*layers)
 
 
