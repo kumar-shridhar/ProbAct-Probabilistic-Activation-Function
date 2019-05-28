@@ -1,6 +1,6 @@
 # ProbAct-Probabilistic-Activation-Function
 
-Official PyTorch implementation of the paper : ProbAct: A Probabilistic Activation Function for Deep Neural Networks.
+Official PyTorch implementation of the paper : ![ProbAct: A Probabilistic Activation Function for Deep Neural Networks](https://arxiv.org/abs/1905.10761).
 ![ProbAct](Visualization/ProbAct.png)
 
 ## Why ProbAct
