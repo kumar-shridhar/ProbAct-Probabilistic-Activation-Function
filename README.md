@@ -15,7 +15,16 @@ Most of the activation functions currently used are deterministic in nature, who
 
 ![Test-Train Comparison on CIFAR100](Visualization/OverfittingCIFAR100.png)
 
+
+Cite the authors if you find the work useful:
+
 ```
+@article{lee2019probact,
+  title={ProbAct: A Probabilistic Activation Function for Deep Neural Networks},
+  author={Lee, Joonho and Shridhar, Kumar and Hayashi, Hideaki and Iwana, Brian Kenji and Kang, Seokjun and Uchida, Seiichi},
+  journal={arXiv preprint arXiv:1905.10761},
+  year={2019}
+}
 
 ```
 
